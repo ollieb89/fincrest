@@ -1,17 +1,20 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env
-load_dotenv()
-
-# Use SECRET_KEY from environment
+# Load environment variables from Azure App Service (no .env file required)
 SECRET_KEY = os.getenv("SECRET_KEY")
+BINANCE_WS_URL = os.getenv("BINANCE_WS_URL")
+BINANCE_WS_USER = os.getenv("BINANCE_WS_USER")
+AZURE_VAULT_URL = os.getenv("AZURE_VAULT_URL")
 
+# Ensure required variables are set
 if not SECRET_KEY:
-    raise ValueError("SECRET_KEY is not set! Check your .env file.")
+    raise ValueError("SECRET_KEY is not set! Make sure it's configured in Azure.")
+
+if not AZURE_VAULT_URL:
+    raise ValueError("AZURE_VAULT_URL is missing. Add it in Azure settings.")
 
 ROOT_URLCONF = "fincrest.urls"
 
