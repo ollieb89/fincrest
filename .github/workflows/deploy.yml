@@ -38,6 +38,12 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Set Python Path
+        run: echo "PYTHONPATH=${{ github.workspace }}/backend" >> $GITHUB_ENV
+
+      - name: Debug Manage.py Path
+        run: ls -R ${{ github.workspace }}/backend/fincrest
+
       - name: Verify Manage.py Exists
         run: |
           if [ ! -f backend/fincrest/manage.py ]; then
@@ -50,7 +56,7 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: fincrest.settings.production  # ✅ Set correct settings
         run: |
-          source ../antenv/bin/activate
+          source ${{ github.workspace }}/backend/antenv/bin/activate
           python manage.py migrate --noinput
 
       - name: Collect Static Files
@@ -58,7 +64,7 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: fincrest.settings.production
         run: |
-          source ../antenv/bin/activate
+          source ${{ github.workspace }}/backend/antenv/bin/activate
           python manage.py collectstatic --noinput
 
       - name: Zip Artifact for Deployment

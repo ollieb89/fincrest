@@ -1,5 +1,16 @@
 from fincrest.utils.keyvault import get_secret
 
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'fincrest',  # ✅ Make sure this is here
+]
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
