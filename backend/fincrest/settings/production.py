@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
+from fincrest.utils.keyvault import get_secret
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ✅ Load secrets from Azure
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = get_secret("DJANGO-SECRET-KEY")  # 👈 Fetch directly from Key Vault
 
 if not SECRET_KEY:
-    raise ValueError("❌ SECRET_KEY is missing. Set it in Azure.")
+    raise ValueError("❌ SECRET_KEY is missing. Make sure it's stored in Key Vault and accessible.")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "fincrest-backend.azurewebsites.net").split(",")
 
