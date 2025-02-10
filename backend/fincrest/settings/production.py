@@ -4,7 +4,7 @@ from fincrest.utils.keyvault import get_secret
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = get_secret("DJANGO-SECRET-KEY")  # 👈 Fetch directly from Key Vault
+SECRET_KEY = get_secret("SECRET-KEY")  # 👈 Fetch directly from Key Vault
 
 if not SECRET_KEY:
     raise ValueError("❌ SECRET_KEY is missing. Make sure it's stored in Key Vault and accessible.")
