@@ -1,0 +1,108 @@
+# 📌 Deploy Django App to Azure Web App
+# Docs: https://github.com/Azure/webapps-deploy
+
+name: Build and Deploy Django Backend to Azure
+
+on:
+  push:
+    branches:
+      - main  # ✅ Runs on push to main
+  workflow_dispatch:  # ✅ Allows manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read  # ✅ Required for actions/checkout
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Debug File Paths
+        run: ls -R
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system dependencies
+        run: sudo apt-get install -y python3-venv python3-dev
+
+      - name: Create and start virtual environment
+        working-directory: backend
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify Manage.py Exists
+        run: |
+          if [ ! -f backend/manage.py ]; then
+            echo "❌ Error: backend/manage.py not found!"
+            exit 1
+          fi
+
+      - name: Run Migrations
+        working-directory: backend
+        run: |
+          source venv/bin/activate
+          python manage.py migrate --noinput
+
+      - name: Collect Static Files
+        working-directory: backend
+        run: |
+          source venv/bin/activate
+          python manage.py collectstatic --noinput
+
+      - name: Zip artifact for deployment
+        run: |
+          cd backend
+          zip -r ../release.zip .
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: release.zip
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write  # ✅ Required for JWT authentication
+      contents: read
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+
+      - name: Unzip artifact
+        run: unzip release.zip -d backend
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
+
+      - name: Set Startup Command for Django
+        run: |
+          az webapp config set --name fincrest-backend \
+            --resource-group fincrestresourcegroup \
+            --startup-file "gunicorn --bind=0.0.0.0 --timeout 600 backend.fincrest.wsgi:application"
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: 'fincrest-backend'
+          package: backend
