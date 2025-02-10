@@ -27,6 +27,12 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Set Azure Identity Variables
+        run: |
+          echo "AZURE_CLIENT_ID=2d10c108-a0c1-474f-88cf-543cffca9dd7" >> $GITHUB_ENV
+          echo "AZURE_TENANT_ID=91828c1e-01c5-42c9-9ad6-92e40d71f956" >> $GITHUB_ENV
+          echo "AZURE_SUBSCRIPTION_ID=53b0c4e7-0c78-4b57-9b1a-1c5ac8d9a0a1" >> $GITHUB_ENV
+
       - name: Install system dependencies
         run: sudo apt-get install -y python3-venv python3-dev
 
