@@ -27,16 +27,20 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Set Python Path
+        run: echo "PYTHONPATH=$PWD/backend" >> $GITHUB_ENV
+
       - name: Install system dependencies
         run: sudo apt-get install -y python3-venv python3-dev
 
-      - name: Create and start virtual environment
+      - name: Create Virtual Environment
         working-directory: backend
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          python -m venv antenv
+          source antenv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
+      
 
       - name: Verify Manage.py Exists
         run: |
@@ -51,7 +55,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: fincrest.settings.production  # ✅ Set correct settings
           PYTHONPATH: ${{ github.workspace }}/backend
         run: |
-          source ../venv/bin/activate
+          source ../antenv/bin/activate
           python manage.py migrate --noinput
 
       - name: Collect Static Files
@@ -60,7 +64,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: fincrest.settings.production
           PYTHONPATH: ${{ github.workspace }}/backend
         run: |
-          source ../venv/bin/activate
+          source ../antenv/bin/activate
           python manage.py collectstatic --noinput
 
       - name: Zip Artifact for Deployment
@@ -111,6 +115,7 @@ jobs:
         id: deploy-to-webapp
         with:
           app-name: 'fincrest-backend'
-          package: backend
+          package: backend/fincrest
+          
           
 

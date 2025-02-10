@@ -1,4 +1,4 @@
-from backend.fincrest.utils.keyvault import get_secret
+from fincrest.utils.keyvault import get_secret
 
 DATABASES = {
     'default': {
