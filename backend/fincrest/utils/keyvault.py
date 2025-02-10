@@ -1,22 +1,19 @@
 import os
-from azure.identity import ClientSecretCredential
-from azure.keyvault.secrets import SecretClient
 import logging
+from azure.identity import ManagedIdentityCredential
+from azure.keyvault.secrets import SecretClient
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Load Key Vault details
-VAULT_URL = os.getenv("AZURE_VAULT_URL", "https://fcvauult.vault.azure.net/")
-CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
-CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
-TENANT_ID = os.getenv("AZURE_TENANT_ID")
+# Load Key Vault URL from environment
+VAULT_URL = os.getenv("AZURE_VAULT_URL")
 
-if not CLIENT_ID or not CLIENT_SECRET or not TENANT_ID:
-    raise ValueError("❌ Azure credentials are missing. Set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and AZURE_TENANT_ID.")
+if not VAULT_URL:
+    raise ValueError("❌ AZURE_VAULT_URL is missing. Add it in Azure App Settings.")
 
-# Authenticate with Key Vault
-credential = ClientSecretCredential(tenant_id=TENANT_ID, client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
+# 🔴 FIXED: Use Managed Identity
+credential = ManagedIdentityCredential()
 client = SecretClient(vault_url=VAULT_URL, credential=credential)
 
 def get_secret(secret_name):
