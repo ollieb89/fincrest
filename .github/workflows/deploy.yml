@@ -30,13 +30,13 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get install -y python3-venv python3-dev
 
-      - name: Create and start virtual environment
-        working-directory: backend/fincrest
+      - name: Install dependencies
+        working-directory: backend  # ✅ Use the correct path
         run: |
-          python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
+      
 
       - name: Verify Manage.py Exists
         run: |
