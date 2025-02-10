@@ -49,6 +49,7 @@ jobs:
         working-directory: backend/fincrest
         env:
           DJANGO_SETTINGS_MODULE: fincrest.settings.production  # ✅ Set correct settings
+          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           source ../venv/bin/activate
           python manage.py migrate --noinput
@@ -57,6 +58,7 @@ jobs:
         working-directory: backend/fincrest
         env:
           DJANGO_SETTINGS_MODULE: fincrest.settings.production
+          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           source ../venv/bin/activate
           python manage.py collectstatic --noinput
