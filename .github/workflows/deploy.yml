@@ -31,7 +31,7 @@ jobs:
         run: sudo apt-get install -y python3-venv python3-dev
 
       - name: Create and start virtual environment
-        working-directory: backend
+        working-directory: backend/fincrest
         run: |
           python -m venv venv
           source venv/bin/activate
@@ -40,27 +40,27 @@ jobs:
 
       - name: Verify Manage.py Exists
         run: |
-          if [ ! -f backend/manage.py ]; then
-            echo "❌ Error: backend/manage.py not found!"
+          if [ ! -f backend/fincrest/manage.py ]; then
+            echo "❌ Error: backend/fincrest/manage.py not found!"
             exit 1
           fi
 
       - name: Run Migrations
-        working-directory: backend
+        working-directory: backend/fincrest
         run: |
           source venv/bin/activate
           python manage.py migrate --noinput
 
       - name: Collect Static Files
-        working-directory: backend
+        working-directory: backend/fincrest
         run: |
           source venv/bin/activate
           python manage.py collectstatic --noinput
 
       - name: Zip artifact for deployment
         run: |
-          cd backend
-          zip -r ../release.zip .
+          cd backend/fincrest
+          zip -r ../../release.zip .
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -85,7 +85,7 @@ jobs:
           name: python-app
 
       - name: Unzip artifact
-        run: unzip release.zip -d backend
+        run: unzip release.zip -d backend/fincrest
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -97,12 +97,12 @@ jobs:
       - name: Set Startup Command for Django
         run: |
           az webapp config set --name fincrest-backend \
-            --resource-group fincrestresourcegroup \
-            --startup-file "gunicorn --bind=0.0.0.0 --timeout 600 backend.fincrest.wsgi:application"
+            --resource-group FinCrestResourceGroup \
+            --startup-file "gunicorn --bind=0.0.0.0 --timeout 600 fincrest.wsgi:application"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'fincrest-backend'
-          package: backend
+          package: backend/fincrest
