@@ -30,13 +30,19 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get install -y python3-venv python3-dev
 
-      - name: Install dependencies
-        working-directory: backend  # ✅ Use the correct path
+      - name: Ensure Virtual Environment Exists
+        working-directory: backend
+        run: |
+          if [ ! -d "venv" ]; then
+            python -m venv venv
+          fi
+
+      - name: Install Dependencies
+        working-directory: backend
         run: |
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-      
 
       - name: Verify Manage.py Exists
         run: |
@@ -48,19 +54,19 @@ jobs:
       - name: Run Migrations
         working-directory: backend/fincrest
         run: |
-          source venv/bin/activate
+          source ../venv/bin/activate
           python manage.py migrate --noinput
 
       - name: Collect Static Files
         working-directory: backend/fincrest
         run: |
-          source venv/bin/activate
+          source ../venv/bin/activate
           python manage.py collectstatic --noinput
 
-      - name: Zip artifact for deployment
+      - name: Zip Artifact for Deployment
         run: |
-          cd backend/fincrest
-          zip -r ../../release.zip .
+          cd backend
+          zip -r ../release.zip .
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -79,13 +85,13 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download Artifact from Build Job
         uses: actions/download-artifact@v4
         with:
           name: python-app
 
-      - name: Unzip artifact
-        run: unzip release.zip -d backend/fincrest
+      - name: Unzip Artifact
+        run: unzip release.zip -d backend
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -105,4 +111,4 @@ jobs:
         id: deploy-to-webapp
         with:
           app-name: 'fincrest-backend'
-          package: backend/fincrest
+          package: backend
