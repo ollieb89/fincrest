@@ -16,6 +16,24 @@ if not SECRET_KEY:
 if not AZURE_VAULT_URL:
     raise ValueError("AZURE_VAULT_URL is missing. Add it in Azure settings.")
 
+# Azure database settings from Key Vault
+DATABASES = {
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
+        "NAME": os.getenv("DB-NAME"),
+        "USER": os.getenv("DB-USER"),
+        "PASSWORD": os.getenv("DB-PASSWORD"),
+        "HOST": os.getenv("DB-HOST"),
+        "PORT": "5432",
+    }
+}
+
+if not DATABASES["default"]["NAME"]:
+    raise ValueError("❌ DATABASE NAME (DB-NAME) is not set! Check Azure environment variables.")
+
+# Allowed Hosts (Set via Azure ENV)
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "fincrest-backend.azurewebsites.net").split(",")
+
 ROOT_URLCONF = "fincrest.urls"
 
 INSTALLED_APPS = [
@@ -41,11 +59,10 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# 👇 Add this TEMPLATES setting:
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  # 👈 Directory for custom templates
+        "DIRS": [BASE_DIR / "templates"],  
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -61,3 +78,24 @@ TEMPLATES = [
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Logging for Azure
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "logs/django-error.log",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+    },
+}
