@@ -1,22 +1,16 @@
 #!/bin/bash
-echo "🔹 Starting Django Backend on Azure..."
-
-# Navigate to backend directory
-cd backend
 
 # Activate virtual environment
-if [ -d "venv" ]; then
-    source venv/bin/activate
-fi
+source /home/site/wwwroot/backend/antenv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Run Migrations
-python manage.py migrate --noinput
+# Run Django Migrations
+echo "Running Django Migrations..."
+python /home/site/wwwroot/backend/fincrest/manage.py migrate --noinput
 
 # Collect Static Files
-python manage.py collectstatic --noinput
+echo "Collecting static files..."
+python /home/site/wwwroot/backend/fincrest/manage.py collectstatic --noinput
 
-# Start Gunicorn
-gunicorn --bind=0.0.0.0 --timeout 600 fincrest.wsgi:application
+# Start Gunicorn server
+echo "Starting Gunicorn..."
+exec gunicorn --workers=4 --timeout 600 --bind=0.0.0.0:8000 fincrest.wsgi:application
