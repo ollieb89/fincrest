@@ -33,13 +33,7 @@ jobs:
       - name: Ensure Virtual Environment Exists
         working-directory: backend
         run: |
-          if [ ! -d "venv" ]; then
-            python -m venv venv
-          fi
-
-      - name: Install Dependencies
-        working-directory: backend
-        run: |
+          python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
@@ -53,12 +47,16 @@ jobs:
 
       - name: Run Migrations
         working-directory: backend/fincrest
+        env:
+          DJANGO_SETTINGS_MODULE: fincrest.settings.production  # ✅ Set correct settings
         run: |
           source ../venv/bin/activate
           python manage.py migrate --noinput
 
       - name: Collect Static Files
         working-directory: backend/fincrest
+        env:
+          DJANGO_SETTINGS_MODULE: fincrest.settings.production
         run: |
           source ../venv/bin/activate
           python manage.py collectstatic --noinput
