@@ -27,9 +27,6 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Set Python Path
-        run: echo "PYTHONPATH=$PWD/backend" >> $GITHUB_ENV
-
       - name: Install system dependencies
         run: sudo apt-get install -y python3-venv python3-dev
 
@@ -40,7 +37,6 @@ jobs:
           source antenv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-      
 
       - name: Verify Manage.py Exists
         run: |
@@ -53,7 +49,6 @@ jobs:
         working-directory: backend/fincrest
         env:
           DJANGO_SETTINGS_MODULE: fincrest.settings.production  # ✅ Set correct settings
-          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           source ../antenv/bin/activate
           python manage.py migrate --noinput
@@ -62,7 +57,6 @@ jobs:
         working-directory: backend/fincrest
         env:
           DJANGO_SETTINGS_MODULE: fincrest.settings.production
-          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           source ../antenv/bin/activate
           python manage.py collectstatic --noinput
@@ -104,11 +98,24 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
-      - name: Set Startup Command for Django
+      - name: Enable Azure Web App Managed Identity
+        run: |
+          az webapp identity assign --name fincrest-backend --resource-group FinCrestResourceGroup
+
+      - name: Retrieve Key Vault Secrets and Set App Config
+        run: |
+          az webapp config appsettings set --name fincrest-backend --resource-group FinCrestResourceGroup --settings \
+          DB-NAME=@Microsoft.KeyVault(SecretUri=https://fcvauult.vault.azure.net/secrets/DB-NAME/) \
+          DB-USER=@Microsoft.KeyVault(SecretUri=https://fcvauult.vault.azure.net/secrets/DB-USER/) \
+          DB-PASSWORD=@Microsoft.KeyVault(SecretUri=https://fcvauult.vault.azure.net/secrets/DB-PASSWORD/) \
+          DB-HOST=@Microsoft.KeyVault(SecretUri=https://fcvauult.vault.azure.net/secrets/DB-HOST/) \
+          DJANGO-SECRET-KEY=@Microsoft.KeyVault(SecretUri=https://fcvauult.vault.azure.net/secrets/DJANGO-SECRET-KEY/)
+
+      - name: Set Correct Django Startup Command
         run: |
           az webapp config set --name fincrest-backend \
             --resource-group FinCrestResourceGroup \
-            --startup-file "gunicorn --bind=0.0.0.0 --timeout 600 fincrest.wsgi:application"
+            --startup-file "source /home/site/wwwroot/antenv/bin/activate && gunicorn --bind=0.0.0.0:8000 fincrest.wsgi:application"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
@@ -116,6 +123,3 @@ jobs:
         with:
           app-name: 'fincrest-backend'
           package: backend/fincrest
-          
-          
-
