@@ -30,7 +30,7 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get install -y python3-venv python3-dev
 
-      - name: Ensure Virtual Environment Exists
+      - name: Create and start virtual environment
         working-directory: backend
         run: |
           python -m venv venv
