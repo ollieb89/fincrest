@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Activate virtual environment
+# Update 'antenv' to match your virtual environment directory if needed
 source /home/site/wwwroot/backend/antenv/bin/activate
 
 # Run Django Migrations

@@ -4,14 +4,13 @@ from fincrest.utils.keyvault import get_secret
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = get_secret("SECRET-KEY")  # 👈 Fetch directly from Key Vault
-
+# Retrieve secrets from Key Vault using our helper function (ensure it points to the new Key Vault if needed)
+SECRET_KEY = get_secret("SECRET-KEY")
 if not SECRET_KEY:
-    raise ValueError("❌ SECRET_KEY is missing. Make sure it's stored in Key Vault and accessible.")
+    raise ValueError("SECRET_KEY is missing. Make sure it's stored in Key Vault and accessible.")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "fincrest-backend.azurewebsites.net").split(",")
 
-# ✅ Database settings from Azure Key Vault
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
@@ -23,8 +22,8 @@ DATABASES = {
     }
 }
 
-if not DATABASES["default"]["NAME"]:
-    raise ValueError("❌ DATABASE NAME (DB-NAME) is not set! Check Azure environment variables.")
+if not DATABASES["default"].get("NAME"):
+    raise ValueError("DATABASE NAME (DB-NAME) is not set! Check Azure environment variables.")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -33,7 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "fincrest",  
+    "fincrest",  # If you have a main app
     "apps.ai_engine",
     "apps.azure_integration",
     "apps.data_connectors",
@@ -53,7 +52,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -63,15 +62,13 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
             ],
         },
-    },
+    }
 ]
 
-# ✅ Static Files for Azure
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# ✅ Logging for Azure
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
